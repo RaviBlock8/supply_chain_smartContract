@@ -1,9 +1,10 @@
 pragma solidity ^0.6.0;
 
-import "./Item/..";
+import "./Item.sol";
+import "./Ownable.sol";
 
 
-contract ItemManager {
+contract ItemManager is Ownable {
     enum SupplyChainState {created, paid, delivered}
     struct S_item {
         string _identifier;
@@ -19,7 +20,10 @@ contract ItemManager {
     mapping(uint256 => S_item) public items;
     uint256 itemIndex;
 
-    function createItem(string memory _identifier, uint256 _itemPrice) public {
+    function createItem(string memory _identifier, uint256 _itemPrice)
+        public
+        onlyOwner
+    {
         Item item = new Item(this, _itemPrice, itemIndex);
         items[itemIndex]._identifier = _identifier;
         items[itemIndex]._itemPrice = _itemPrice;
@@ -50,7 +54,7 @@ contract ItemManager {
         );
     }
 
-    function triggerDelievery(uint256 _itemIndex) public {
+    function triggerDelievery(uint256 _itemIndex) public onlyOwner {
         require(
             items[_itemIndex]._state == SupplyChainState.paid,
             "item is further in the chain"
