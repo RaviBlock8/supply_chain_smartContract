@@ -1,5 +1,7 @@
 pragma solidity ^0.6.0;
 
+import "./Item/..";
+
 
 contract ItemManager {
     enum SupplyChainState {created, paid, delivered}
@@ -7,15 +9,27 @@ contract ItemManager {
         string _identifier;
         uint256 _itemPrice;
         ItemManager.SupplyChainState _state;
+        Item _item;
     }
-    event itemState(uint256 _itemIndex, ItemManager.SupplyChainState _state);
+    event itemState(
+        uint256 _itemIndex,
+        ItemManager.SupplyChainState _state,
+        address _item
+    );
     mapping(uint256 => S_item) public items;
     uint256 itemIndex;
 
     function createItem(string memory _identifier, uint256 _itemPrice) public {
+        Item item = new Item(this, _itemPrice, itemIndex);
         items[itemIndex]._identifier = _identifier;
         items[itemIndex]._itemPrice = _itemPrice;
         items[itemIndex]._state = SupplyChainState.created;
+        items[itemIndex]._item = item;
+        emit itemState(
+            itemIndex,
+            items[itemIndex]._state,
+            address(items[itemIndex]._item)
+        );
         itemIndex++;
     }
 
@@ -29,7 +43,11 @@ contract ItemManager {
             "item is further in the chain"
         );
         items[_itemIndex]._state = SupplyChainState.paid;
-        emit itemState(_itemIndex, items[_itemIndex]._state);
+        emit itemState(
+            _itemIndex,
+            items[_itemIndex]._state,
+            address(items[_itemIndex]._item)
+        );
     }
 
     function triggerDelievery(uint256 _itemIndex) public {
@@ -38,6 +56,10 @@ contract ItemManager {
             "item is further in the chain"
         );
         items[_itemIndex]._state = SupplyChainState.delivered;
-        emit itemState(_itemIndex, items[_itemIndex]._state);
+        emit itemState(
+            _itemIndex,
+            items[_itemIndex]._state,
+            address(items[_itemIndex]._item)
+        );
     }
 }
